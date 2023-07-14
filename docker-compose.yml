@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - temp:/app/temp
+    env_file:
+      - .env
+    depends_on:
+      - celery
+    command: "flask --app main run -h 0.0.0.0 -p 5000"
+  celery:
+    build: .
+    volumes:
+      - temp:/app/temp
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - mongo
+    command: "celery -A main.celery_app worker -l info"
+  redis:
+    image: redis:alpine
+  mongo:
+    image: mongo:jammy
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+
+volumes:
+  temp:
